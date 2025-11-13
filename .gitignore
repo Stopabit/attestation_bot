@@ -4,6 +4,7 @@ __pycache__/
 .DS_Store
 .env
 *.log
+bot/storage/*.jsonl
 *.pdf
 .pytest_cache/
 .mypy_cache/
