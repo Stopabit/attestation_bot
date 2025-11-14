@@ -11,7 +11,7 @@ from .config import load_config
 from .handlers import register_handlers
 from .services.question_engine import QuestionEngine
 from .services.question_loader import parse_tests
-from .services.result_store import ResultStore
+from .services.result_store import build_result_store
 
 
 async def main() -> None:
@@ -20,7 +20,7 @@ async def main() -> None:
         raise RuntimeError("BOT_TOKEN не найден. Добавьте его в .env.")
     tests = parse_tests(config.data_path)
     question_engine = QuestionEngine(tests=tests)
-    result_store = ResultStore(config.results_path)
+    result_store = build_result_store(config.result_store)
     dp = Dispatcher(storage=MemoryStorage())
     register_handlers(
         dp=dp,
