@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -10,6 +11,7 @@ from ..config import DatabaseConfig, ResultStoreConfig
 from .models import QuestionResult, QuestionType
 from .state import UserProfile
 
+logger = logging.getLogger(__name__)
 
 def _build_payload(
     user_id: int,
@@ -72,10 +74,15 @@ class FileResultStore:
 
 
 class DatabaseResultStore:
-    """Blank adapter for будущие интеграции с БД."""
+    """Blank adapter for будущие интеграции с БД.
 
-    def __init__(self, config: DatabaseConfig):
+    Пока подключения нет, результаты складываются в fallback-файл.
+    """
+
+    def __init__(self, config: DatabaseConfig, fallback_path: Path):
         self.config = config
+        self._fallback = FileResultStore(fallback_path)
+        self._warned = False
 
     def append(
         self,
@@ -84,14 +91,17 @@ class DatabaseResultStore:
         result: QuestionResult,
         session_id: str,
     ) -> None:
-        payload = _build_payload(user_id, profile, result, session_id)
-        raise NotImplementedError(
-            "DatabaseResultStore is a placeholder. "
-            "Use `payload` together with `self.config` to persist data into the DB."
-        )
+        if not self._warned:
+            logger.warning(
+                "DatabaseResultStore fallback in use — results are written to %s. "
+                "Replace append() with DB integration when ready.",
+                self._fallback.path,
+            )
+            self._warned = True
+        self._fallback.append(user_id, profile, result, session_id)
 
 
 def build_result_store(config: ResultStoreConfig) -> ResultStore:
     if config.backend == "db":
-        return DatabaseResultStore(config.db)
+        return DatabaseResultStore(config.db, config.file_path)
     return FileResultStore(config.file_path)

@@ -55,7 +55,7 @@ python -m bot.main
 Модуль `bot/services/result_store.py` содержит два адаптера:
 
 - `FileResultStore` — текущий вариант, пишет JSONL-файл (`RESULTS_BACKEND=file`).
-- `DatabaseResultStore` — заготовка для подключения Postgres/MySQL/и т. д. Он уже получает готовый `payload` и настройки подключения (`RESULT_DB_*`), осталось внедрить запросы.
+- `DatabaseResultStore` — заготовка для подключения Postgres/MySQL/и т. д. Пока интеграция не реализована, он автоматически пишет данные в тот же JSONL-файл (fallback), чтобы ничего не потерять.
 
 Переключение происходит через переменные окружения:
 
