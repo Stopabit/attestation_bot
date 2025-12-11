@@ -18,22 +18,17 @@ router = Router(name="test-block")
 
 QUESTION_ENGINE: QuestionEngine | None = None
 RESULT_STORE: ResultStore | None = None
-BLOCK_ONE_COUNT: int = 25
-BLOCK_TWO_COUNT: int = 15
 SUMMARY_CHUNK_LIMIT = 3500
+ROLE_CALLBACK_PREFIX = "role|"
 
 
 def setup_dependencies(
     question_engine: QuestionEngine,
     result_store: ResultStore,
-    block_one_count: int,
-    block_two_count: int,
 ) -> None:
-    global QUESTION_ENGINE, RESULT_STORE, BLOCK_ONE_COUNT, BLOCK_TWO_COUNT
+    global QUESTION_ENGINE, RESULT_STORE
     QUESTION_ENGINE = question_engine
     RESULT_STORE = result_store
-    BLOCK_ONE_COUNT = block_one_count
-    BLOCK_TWO_COUNT = block_two_count
 
 
 def get_engine() -> QuestionEngine:
@@ -48,8 +43,8 @@ def get_result_store() -> ResultStore:
     return RESULT_STORE
 
 
-def block_title(block_number: int) -> str:
-    return "Блок 1 — Тесты" if block_number == 1 else "Блок 2 — Процессы"
+def block_title(session: Session, block_number: int) -> str:
+    return session.block_titles.get(block_number, f"Блок {block_number}")
 
 
 def block_total(session: Session, block_number: int) -> int:
@@ -57,6 +52,7 @@ def block_total(session: Session, block_number: int) -> int:
 
 
 def format_answer_text(question: Question, answer: Any) -> str:
+    # Keep answer formatting compact for review/summary blocks
     if question.type == QuestionType.matching:
         mapping = dict(answer or {})
         if not mapping:
@@ -110,7 +106,7 @@ def build_review_text(session: Session, result: QuestionResult) -> str:
     status = "Верно ✅" if result.is_correct else "Неверно ❌"
     lines = [
         f"Просмотр ответов • {index + 1}/{total}",
-        f"{block_title(result.question.block)} — {status}",
+        f"{block_title(session, result.question.block)} — {status}",
         "",
         result.question.prompt,
         "",
@@ -144,6 +140,9 @@ def build_question_text(
     question: Question,
     review_result: QuestionResult | None = None,
 ) -> str:
+    def choice_index_map() -> dict[str, int]:
+        return {choice.id: idx for idx, choice in enumerate(question.choices, start=1)}
+
     if review_result:
         return build_review_text(session, review_result)
     block = session.current_block
@@ -151,16 +150,22 @@ def build_question_text(
     block_index = session.current_index + 1
     overall = session.answered_count() + 1
     lines = [
-        f"{block_title(block)} • вопрос {block_index}/{block_total_count}",
+        f"{block_title(session, block)} • вопрос {block_index}/{block_total_count}",
         f"Общий прогресс: {overall}/{session.total_questions()}",
         "",
         question.prompt,
     ]
+    if question.type in (QuestionType.single_choice, QuestionType.multi_choice):
+        lines.append("")
+        lines.append("Варианты ответов:")
+        for idx, choice in enumerate(question.choices, start=1):
+            lines.append(f"{idx}. {choice.text}")
     if question.type == QuestionType.multi_choice:
         selected = session.multi_choice_state.get(question.id, set())
         if selected:
+            index_lookup = choice_index_map()
             texts = [
-                choice.text
+                f"{index_lookup.get(choice.id, '?')}. {choice.text}"
                 for choice in question.choices
                 if choice.id in selected
             ]
@@ -194,9 +199,9 @@ def build_keyboard(
         add_navigation_buttons(builder, session)
         return builder
     if question.type == QuestionType.single_choice:
-        for choice in question.choices:
+        for idx, choice in enumerate(question.choices, start=1):
             builder.button(
-                text=choice.text,
+                text=str(idx),
                 callback_data=f"sc|{question.id}|{choice.id}",
             )
         builder.adjust(1)
@@ -204,10 +209,10 @@ def build_keyboard(
         return builder
     if question.type == QuestionType.multi_choice:
         selected = session.multi_choice_state.get(question.id, set())
-        for choice in question.choices:
+        for idx, choice in enumerate(question.choices, start=1):
             prefix = "✅" if choice.id in selected else "▫️"
             builder.button(
-                text=f"{prefix} {choice.text}",
+                text=f"{prefix} {idx}",
                 callback_data=f"mc|toggle|{question.id}|{choice.id}",
             )
         builder.button(text="Очистить", callback_data=f"mc|reset|{question.id}")
@@ -336,16 +341,32 @@ async def finish_session(message: Message, state: FSMContext, session: Session) 
 
 def build_summary(session: Session) -> str:
     mistakes = [answer for answer in session.answers if not answer.is_correct]
+    total = session.total_questions()
+    correct_total = sum(1 for answer in session.answers if answer.is_correct)
+    block_one_results = [a for a in session.answers if a.question.block == 1]
+    block_two_results = [a for a in session.answers if a.question.block == 2]
+    block_one_correct = sum(1 for a in block_one_results if a.is_correct)
+    block_two_correct = sum(1 for a in block_two_results if a.is_correct)
+
+    lines: List[str] = [
+        f"Итоги для {session.profile.full_name} ({session.profile.position}):",
+        f"Всего: {correct_total}/{total} верно, ошибок: {total - correct_total}.",
+    ]
+    if block_one_results:
+        lines.append(f"{block_title(session, 1)}: {block_one_correct}/{len(session.block_one)} верно.")
+    if block_two_results:
+        lines.append(f"{block_title(session, 2)}: {block_two_correct}/{len(session.block_two)} верно.")
+
     if not mistakes:
-        return (
-            "Ошибок не найдено — отличный результат!\n"
-            "Группы исследований с ошибками: —"
-        )
+        lines.append("")
+        lines.append("Ошибок нет — отличная работа!")
+        return "\n".join(lines)
 
     def inline_answer(text: str) -> str:
         return text.replace("\n", "; ")
 
-    lines: List[str] = ["Ошибки в вопросах:"]
+    lines.append("")
+    lines.append("Ошибки в вопросах:")
     for idx, result in enumerate(mistakes, start=1):
         user_answer = inline_answer(format_answer_text(result.question, result.user_answer))
         correct_answer = inline_answer(
@@ -356,24 +377,24 @@ def build_summary(session: Session) -> str:
         )
         lines.append(
             f"{idx}. {result.question.prompt} "
-            f"Ответ пользователя: {user_answer}. "
-            f"Правильный ответ: {correct_answer}."
+            f"Ответ: {user_answer}. "
+            f"Правильно: {correct_answer}."
         )
 
-    research_categories = sorted(
+    topics = sorted(
         {
-            result.question.meta.get("category")
+            result.question.topic
             for result in mistakes
-            if result.question.block == 1 and result.question.meta.get("category")
+            if result.question.topic
         }
     )
     lines.append("")
-    lines.append("Группы исследований с ошибками:")
-    if research_categories:
-        for category in research_categories:
-            lines.append(f"- {category}")
+    lines.append("Темы с ошибками:")
+    if topics:
+        for topic in topics:
+            lines.append(f"- {topic}")
     else:
-        lines.append("- Ошибок в вопросах по исследованиям нет")
+        lines.append("- Нет тем с ошибками")
     return "\n".join(lines)
 
 
@@ -397,14 +418,14 @@ async def handle_transition(message: Message, state: FSMContext, session: Sessio
         await bot.edit_message_text(
             chat_id=message.chat.id,
             message_id=session.question_message_id,
-            text="Блок 1 завершён. Готовим второй блок...",
+            text=f"{block_title(session, 1)} завершён. Готовим второй блок...",
             reply_markup=None,
         )
         session.question_message_id = None
     await message.answer(
-        "Блок 1 завершён ✅\n"
-        "Теперь переходим к Блоку 2 — процессные сценарии обслуживания. "
-        "Впереди 15 вопросов о CRM, скриптах и взаимодействии команд."
+        f"{block_title(session, 1)} завершён ✅\n"
+        f"Теперь {block_title(session, 2)}. "
+        f"Впереди {len(session.block_two)} вопросов по выбранной роли."
     )
     await state.update_data(session=session)
 
@@ -420,10 +441,10 @@ def ensure_session(data: Dict[str, object]) -> Session:
 async def cmd_start(message: Message, state: FSMContext) -> None:
     await state.clear()
     greeting = (
-        "Привет! Этот бот проверяет знания по нашей линейке генетических тестов "
-        "и процессам клиентского сервиса.\n\n"
-        "Тест состоит из двух частей: 25 вопросов по исследованиям и 15 процессных кейсов. "
-        "Ответы фиксируются сразу, поэтому списывать не получится.\n\n"
+        "Привет! Этот бот проводит аттестацию: сначала 15 общих вопросов по тестам "
+        "с указанием кодов, затем блок по выбранной роли "
+        "(Менеджер ОКС/ОП, Администратор МО, Медсестра МО). "
+        "Ответы даём только кнопками, видно сразу, верно или нет.\n\n"
         "Для начала укажите, пожалуйста, ваше ФИО."
     )
     await message.answer(greeting)
@@ -437,28 +458,78 @@ async def collect_full_name(message: Message, state: FSMContext) -> None:
         await message.answer("Пожалуйста, укажите ФИО полностью.")
         return
     await state.update_data(full_name=full_name)
-    await message.answer("Спасибо! Теперь введите должность.")
-    await state.set_state(TestStates.waiting_position)
+    engine = get_engine()
+    roles = engine.list_roles()
+    if not roles:
+        await message.answer("Роли для аттестации не настроены. Обратитесь к администратору бота.")
+        return
+    builder = InlineKeyboardBuilder()
+    for role in roles:
+        builder.button(
+            text=role.title,
+            callback_data=f"{ROLE_CALLBACK_PREFIX}{role.slug}",
+        )
+    builder.adjust(1)
+    intro_lines = [
+        "Спасибо! Теперь выберите должность для аттестации:",
+    ]
+    for role in roles:
+        intro_lines.append(f"- {role.title}")
+    await message.answer("\n".join(intro_lines), reply_markup=builder.as_markup())
+    await state.set_state(TestStates.choosing_role)
 
 
-@router.message(TestStates.waiting_position)
-async def collect_position(message: Message, state: FSMContext) -> None:
-    position = (message.text or "").strip()
+@router.callback_query(F.data.startswith(ROLE_CALLBACK_PREFIX), TestStates.choosing_role)
+async def handle_role_choice(callback: CallbackQuery, state: FSMContext) -> None:
+    if not callback.message:
+        return
+    slug = callback.data.replace(ROLE_CALLBACK_PREFIX, "", 1)
+    engine = get_engine()
+    role = engine.get_role(slug)
+    if not role:
+        await callback.answer("Неизвестная роль.")
+        return
     data = await state.get_data()
-    full_name = data["full_name"]
-    profile = UserProfile(full_name=full_name, position=position)
-    block_one, block_two = get_engine().build_blocks(BLOCK_ONE_COUNT, BLOCK_TWO_COUNT)
-    session = Session(profile=profile, block_one=block_one, block_two=block_two)
+    full_name = data.get("full_name")
+    if not full_name:
+        await callback.answer("Не удалось получить ФИО, начните заново.")
+        await state.clear()
+        return
+    profile = UserProfile(full_name=full_name, position=role.title)
+    block_one, block_two = engine.build_blocks(slug)
+    if not block_one:
+        await callback.message.answer("Не удалось собрать вопросы общего блока. Обратитесь к администратору.")
+        await callback.answer()
+        return
+    if not block_two:
+        await callback.message.answer("Для выбранной роли пока нет вопросов. Обратитесь к администратору.")
+        await callback.answer()
+        return
+    session = Session(
+        profile=profile,
+        block_one=block_one,
+        block_two=block_two,
+        block_titles={
+            1: "Блок 1 — Общие тесты",
+            2: f"Блок 2 — {role.title}",
+        },
+        role_slug=slug,
+    )
     session_id = uuid4_hex()
     await state.update_data(session=session, session_id=session_id)
-    await message.answer(
-        f"Отлично, {full_name}! Напоминаю: "
-        f"Блок 1 — 25 вопросов по тестам и преаналитике, "
-        f"Блок 2 — 15 вопросов по процессам.\n"
-        "На каждый вопрос отвечаем кнопками. Вопросы будут появляться один за другим без переписки."
-    )
     await state.set_state(TestStates.answering)
-    await render_question_message(message, state, session)
+    await callback.message.answer(
+        f"Отлично, {full_name}! "
+        "Начинаем с общих вопросов, затем перейдём к блоку по выбранной роли.\n"
+        "На каждый вопрос отвечаем кнопками. Вопросы появляются один за другим в одном сообщении."
+    )
+    await render_question_message(callback.message, state, session)
+    await callback.answer("Роль выбрана, начинаем!")
+
+
+@router.message(TestStates.choosing_role)
+async def remind_role_choice(message: Message) -> None:
+    await message.answer("Выберите должность из списка кнопок выше, чтобы продолжить тест.")
 
 
 def uuid4_hex() -> str:
