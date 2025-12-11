@@ -11,13 +11,9 @@ def register_handlers(
     dp: Dispatcher,
     question_engine: QuestionEngine,
     result_store: ResultStore,
-    block_one_count: int,
-    block_two_count: int,
 ) -> None:
     testing.setup_dependencies(
         question_engine=question_engine,
         result_store=result_store,
-        block_one_count=block_one_count,
-        block_two_count=block_two_count,
     )
     dp.include_router(testing.router)

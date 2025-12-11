@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import List
 
 from dotenv import load_dotenv
 
@@ -26,11 +27,19 @@ class ResultStoreConfig:
 
 
 @dataclass
+class RoleSettings:
+    slug: str
+    title: str
+    block_two_count: int
+    path: Path
+
+
+@dataclass
 class BotConfig:
     token: str
-    block_one_count: int = 25
-    block_two_count: int = 15
-    data_path: Path = Path(__file__).parent / "data" / "tests_raw.json"
+    block_one_count: int = 15
+    common_questions_path: Path = Path(__file__).parent / "data" / "questions_all_tests (1).json"
+    role_settings: List[RoleSettings] = field(default_factory=list)
     result_store: ResultStoreConfig = field(default_factory=ResultStoreConfig)
 
 
@@ -56,4 +65,36 @@ def load_config() -> BotConfig:
         file_path=file_path,
         db=db_config,
     )
-    return BotConfig(token=token, result_store=result_store)
+    data_dir = Path(__file__).parent / "data"
+    roles = [
+        RoleSettings(
+            slug="oks_manager",
+            title="Менеджер ОКС",
+            block_two_count=20,
+            path=data_dir / "oks_questions_cleaned.json",
+        ),
+        RoleSettings(
+            slug="sales_manager",
+            title="Менеджер ОП",
+            block_two_count=20,
+            path=data_dir / "otdel_prodaj.json",
+        ),
+        RoleSettings(
+            slug="admin_mo",
+            title="Администратор МО",
+            block_two_count=15,
+            path=data_dir / "admin_questions.json",
+        ),
+        RoleSettings(
+            slug="nurse_mo",
+            title="Медсестра МО",
+            block_two_count=15,
+            path=data_dir / "nurse_questions.json",
+        ),
+    ]
+    return BotConfig(
+        token=token,
+        result_store=result_store,
+        common_questions_path=data_dir / "questions_all_tests (1).json",
+        role_settings=roles,
+    )

@@ -1,0 +1,214 @@
+{
+    "meta": {
+      "title": "Вопросы для аттестации Медицинских сестер МО",
+      "total_questions": 22
+    },
+    "questions": [
+      {
+        "id": 1,
+        "type": "multiple_choice",
+        "question": "С чего начинается рабочий день процедурного кабинета:",
+        "options": [
+          {"text": "с генеральной уборки", "correct": false},
+          {"text": "влажная уборка кабинета, кварцевание", "correct": true},
+          {"text": "вынос отходов класса Б", "correct": false}
+        ]
+      },
+      {
+        "id": 2,
+        "type": "multiple_choice",
+        "question": "Какие осложнения связаны с нарушением асептики при проведении инъекции:",
+        "options": [
+          {"text": "инфильтрат, вирусный гепатит", "correct": true},
+          {"text": "аллергическая реакция", "correct": false},
+          {"text": "воздушная эмболия", "correct": false}
+        ]
+      },
+      {
+        "id": 3,
+        "type": "multiple_choice",
+        "question": "На исследование Онкогенетики подойдет материал:",
+        "options": [
+          {"text": "блоки, стекла, биоматериал в формалине, ДНК", "correct": true},
+          {"text": "кровь на карточку фильтр", "correct": false},
+          {"text": "пробирка с литием и гепарином", "correct": false}
+        ]
+      },
+      {
+        "id": 4,
+        "type": "multiple_choice",
+        "question": "Оптимальная температура хранения биоматериала в холодильнике:",
+        "options": [
+          {"text": "-0 °C", "correct": false},
+          {"text": "2 °C -4 °C", "correct": false},
+          {"text": "+2 °C +8 °C", "correct": true},
+          {"text": "+10 °C +15 °C", "correct": false}
+        ]
+      },
+      {
+        "id": 5,
+        "type": "multiple_choice",
+        "question": "Пренатальный образец:",
+        "options": [
+          {"text": "парафиновые блоки", "correct": false},
+          {"text": "буккальный эпителий", "correct": false},
+          {"text": "амниотическая жидкость", "correct": true}
+        ]
+      },
+      {
+        "id": 6,
+        "type": "multiple_choice",
+        "question": "К методам дезинфекции относят:",
+        "options": [
+          {"text": "генеральную и текущую уборку", "correct": false},
+          {"text": "физическую и химическую уборку", "correct": false},
+          {"text": "профилактическую и очаговую уборку", "correct": false},
+          {"text": "текущую и заключительную уборку", "correct": true}
+        ]
+      },
+      {
+        "id": 7,
+        "type": "multiple_choice",
+        "question": "Одноразовые пакеты для отходов класса Б должны иметь окраску:",
+        "options": [
+          {"text": "черную", "correct": false},
+          {"text": "красную", "correct": true},
+          {"text": "белую", "correct": false},
+          {"text": "желтую", "correct": false}
+        ]
+      },
+      {
+        "id": 8,
+        "type": "multiple_choice",
+        "question": "Материал на тест (0218) Тандемная масс-спектрометрия:",
+        "options": [
+          {"text": "на фильтровальную бумагу", "correct": true},
+          {"text": "в пробирку с ЭДТА", "correct": false},
+          {"text": "в пробирку с литий-гепарином", "correct": false}
+        ]
+      },
+      {
+        "id": 9,
+        "type": "multiple_choice",
+        "question": "Генеральная уборка процедурного кабинета проводится:",
+        "options": [
+          {"text": "не реже 3 дней", "correct": false},
+          {"text": "не реже 7 дней", "correct": true},
+          {"text": "не реже 10 дней", "correct": false}
+        ]
+      },
+      {
+        "id": 10,
+        "type": "multiple_choice",
+        "question": "При подготовке кожи в месте инъекции протирают:",
+        "options": [
+          {"text": "от места инъекции к периферии", "correct": false},
+          {"text": "в одном направлении несколько раз", "correct": true}
+        ]
+      },
+      {
+        "id": 11,
+        "type": "multiple_choice",
+        "question": "Подготовка при заборе буккального эпителия:",
+        "options": [
+          {"text": "подготовка не требуется", "correct": false},
+          {"text": "не пить, не курить, не целоваться, не жевать 30 минут", "correct": true}
+        ]
+      },
+      {
+        "id": 12,
+        "type": "multiple_choice",
+        "question": "При приступе стенокардии пациенту следует принять:",
+        "options": [
+          {"text": "положение с приподнятыми ногами", "correct": false},
+          {"text": "горизонтальное положение", "correct": false},
+          {"text": "полусидящее положение", "correct": true}
+        ]
+      },
+      {
+        "id": 13,
+        "type": "multiple_choice",
+        "question": "Одноразовые медицинские изделия после использования:",
+        "options": [
+          {"text": "ополаскивают водой", "correct": false},
+          {"text": "дезинфицируют и утилизируют", "correct": false},
+          {"text": "дезинфицируют, проводят предстерилизационную очистку и утилизацию", "correct": true}
+        ]
+      },
+      {
+        "id": 14,
+        "type": "multiple_choice",
+        "question": "Подготовка пациентов к инъекции:",
+        "options": [
+          {"text": "получить согласие у пациента", "correct": true},
+          {"text": "объяснить цели и ход процедуры", "correct": false},
+          {"text": "рассказать о возможных осложнениях", "correct": false},
+          {"text": "уточнить наличие аллергических реакций", "correct": false}
+        ]
+      },
+      {
+        "id": 15,
+        "type": "multiple_choice",
+        "question": "Генеральная уборка проводится средствами для инфекций:",
+        "options": [
+          {"text": "бактериальных", "correct": true},
+          {"text": "вирусных", "correct": false},
+          {"text": "грибковых", "correct": false},
+          {"text": "вызванных простейшими", "correct": false}
+        ]
+      },
+      {
+        "id": 16,
+        "type": "multiple_choice",
+        "question": "Дайте определение термину «антисептика»:",
+        "options": [
+          {"text": "меры для ликвидации микроорганизмов в ране", "correct": true},
+          {"text": "меры по предупреждению проникновения микроорганизмов", "correct": false}
+        ]
+      },
+      {
+        "id": 17,
+        "type": "multiple_choice",
+        "question": "Уборный инвентарь можно хранить:",
+        "options": [
+          {"text": "в условно чистой зоне процедурного кабинета", "correct": false},
+          {"text": "в специально отведенном помещении", "correct": true},
+          {"text": "в тумбочке в процедурном кабинете", "correct": false},
+          {"text": "в шкафу вне процедурного кабинета", "correct": false}
+        ]
+      },
+      {
+        "id": 18,
+        "type": "multiple_choice",
+        "question": "Основополагающие документы процедурного кабинета:",
+        "options": [
+          {"text": "приказы МЗ РФ", "correct": false},
+          {"text": "СанПин", "correct": false},
+          {"text": "справочник для медсестер", "correct": true}
+        ]
+      },
+      {
+        "id": 19,
+        "type": "multiple_choice",
+        "question": "Медицинские отходы, загрязненные биожидкостями, относятся к классу:",
+        "options": [
+          {"text": "А", "correct": false},
+          {"text": "Г", "correct": false},
+          {"text": "Б", "correct": true},
+          {"text": "В", "correct": false}
+        ]
+      },
+      {
+        "id": 20,
+        "type": "multiple_choice",
+        "question": "При попадании крови на кожу ее обрабатывают:",
+        "options": [
+          {"text": "раствором перманганата калия", "correct": false},
+          {"text": "5% спиртовым раствором йода", "correct": false},
+          {"text": "70% спиртом", "correct": true},
+          {"text": "96% спиртом", "correct": false}
+        ]
+      }
+    ]
+  }
+  

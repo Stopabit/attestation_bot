@@ -25,6 +25,8 @@ class Session:
     matching_state: Dict[str, Dict[str, str]] = field(default_factory=dict)
     matching_focus: Dict[str, Optional[str]] = field(default_factory=dict)
     review_index: Optional[int] = None
+    block_titles: Dict[int, str] = field(default_factory=lambda: {1: "Блок 1", 2: "Блок 2"})
+    role_slug: Optional[str] = None
 
     @property
     def is_completed(self) -> bool:
@@ -50,6 +52,7 @@ class Session:
                 self.current_block = 2
                 self.current_index = 0
                 return "switch"
+            return "done"
         if self.current_block == 2 and self.current_index >= len(self.block_two):
             return "done"
         return "next"
